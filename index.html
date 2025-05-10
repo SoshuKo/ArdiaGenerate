@@ -16,15 +16,26 @@
   <textarea id="words" readonly placeholder="ここに単語が表示されます"></textarea>
 
   <script>
+    // 子音オンセット
     const highOnsets = ["p","b","m","f","v","pf","w","t","d","n","s","z","c","r","l","sh","ch","k","g","h","j","'"];
-    const lowOnsets = ["pr","pl","pf","pfr","pfl","spr","spl","spf","spfr","spfl","br","bl","sm","fr","fl","tr","tl","str","stl","tw","dr","dl","sn","sr","sl","sw","zr","zl","cr","cl","cw","scr","scl","shr","shl","shw","chr","chl","chw","schr","schl","kr","kl","kw","skr","skl","gr","gl"];
-    const plainVowels = ["a","e","i","o","u"];
+    const lowOnsets  = ["pr","pl","pf","pfr","pfl","spr","spl","spf","spfr","spfl",
+                        "br","bl","sm","fr","fl","tr","tl","str","stl","tw","dr","dl",
+                        "sn","sr","sl","sw","zr","zl","cr","cl","cw","scr","scl",
+                        "shr","shl","shw","chr","chl","chw","schr","schl","kr","kl","kw",
+                        "skr","skl","gr","gl"];
+    // 母音
+    const plainVowels  = ["a","e","i","o","u"];
     const macronVowels = ["ā","ē","ī","ō","ū"];
-    const acuteVowels = ["á","ó"];
+    const acuteVowels  = ["á","ó"];
+    // 末子音
     const codas = ["p","b","m","f","v","w","t","d","n","s","z","c","r","l","sh","ch","k","g","h","j"];
 
-    function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-    function chooseOnset() { return Math.random() < 0.8 ? pickRandom(highOnsets) : pickRandom(lowOnsets); }
+    function pickRandom(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+    function chooseOnset() {
+      return Math.random() < 0.8 ? pickRandom(highOnsets) : pickRandom(lowOnsets);
+    }
     function chooseFirstVowel(diacriticUsed) {
       const pool = diacriticUsed ? plainVowels : plainVowels.concat(macronVowels);
       return pickRandom(pool);
@@ -33,26 +44,40 @@
       const pool = diacriticUsed ? plainVowels : plainVowels.concat(macronVowels, acuteVowels);
       return pickRandom(pool);
     }
+
     function generateWord() {
       let word = "";
       let diacriticUsed = false;
-      const syllables = Math.random() < 0.5 ? 1 : 2;
-
-      // 第一音節 CV
-      const onset1 = chooseOnset();
-      let vowel1 = chooseFirstVowel(diacriticUsed);
-      if (macronVowels.includes(vowel1)) diacriticUsed = true;
-      word += onset1 + vowel1;
-
-      if (syllables === 2) {
+      const r = Math.random();
+      if (r < 0.7) {
+        // 二音節語 (CVCV または CVCVC)
+        // 第一音節 CV
+        const o1 = chooseOnset();
+        const v1 = chooseFirstVowel(diacriticUsed);
+        if (macronVowels.includes(v1)) diacriticUsed = true;
+        word += o1 + v1;
         // 第二音節 CV
-        const onset2 = chooseOnset();
-        let vowel2 = chooseSecondVowel(diacriticUsed);
-        if (macronVowels.includes(vowel2) || acuteVowels.includes(vowel2)) diacriticUsed = true;
-        word += onset2 + vowel2;
+        const o2 = chooseOnset();
+        const v2 = chooseSecondVowel(diacriticUsed);
+        if (macronVowels.includes(v2) || acuteVowels.includes(v2)) diacriticUsed = true;
+        word += o2 + v2;
+        // CVCVC ロー確率で末子音
         if (Math.random() < 0.5) {
           word += pickRandom(codas);
         }
+      } else if (r < 0.95) {
+        // 一音節語 CV
+        const o = chooseOnset();
+        const v = chooseFirstVowel(diacriticUsed);
+        if (macronVowels.includes(v)) diacriticUsed = true;
+        word = o + v;
+      } else {
+        // 低確率 の 一音節語 CVC
+        const o = chooseOnset();
+        const v = chooseFirstVowel(diacriticUsed);
+        if (macronVowels.includes(v)) diacriticUsed = true;
+        const c = pickRandom(codas);
+        word = o + v + c;
       }
       return word;
     }
