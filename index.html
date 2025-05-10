@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>アルディア語 単語生成器</title>
+  <style>
+    body { font-family: sans-serif; padding: 1rem; }
+    #words { width: 100%; height: 300px; font-size: 1.2rem; }
+  </style>
+</head>
+<body>
+  <h1>アルディア語 単語生成器</h1>
+  <label for="count">生成単語数:</label>
+  <input type="number" id="count" value="10" min="1" style="width:4em;" />
+  <button id="generate">生成</button>
+  <textarea id="words" readonly placeholder="ここに単語が表示されます"></textarea>
+
+  <script>
+    const highOnsets = ["p","b","m","f","v","pf","w","t","d","n","s","z","c","r","l","sh","ch","k","g","h","j","'"];
+    const lowOnsets = ["pr","pl","pf","pfr","pfl","spr","spl","spf","spfr","spfl","br","bl","sm","fr","fl","tr","tl","str","stl","tw","dr","dl","sn","sr","sl","sw","zr","zl","cr","cl","cw","scr","scl","shr","shl","shw","chr","chl","chw","schr","schl","kr","kl","kw","skr","skl","gr","gl"];
+    const plainVowels = ["a","e","i","o","u"];
+    const macronVowels = ["ā","ē","ī","ō","ū"];
+    const acuteVowels = ["á","ó"];
+    const codas = ["p","b","m","f","v","w","t","d","n","s","z","c","r","l","sh","ch","k","g","h","j"];
+
+    function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function chooseOnset() { return Math.random() < 0.8 ? pickRandom(highOnsets) : pickRandom(lowOnsets); }
+    function chooseFirstVowel(diacriticUsed) {
+      const pool = diacriticUsed ? plainVowels : plainVowels.concat(macronVowels);
+      return pickRandom(pool);
+    }
+    function chooseSecondVowel(diacriticUsed) {
+      const pool = diacriticUsed ? plainVowels : plainVowels.concat(macronVowels, acuteVowels);
+      return pickRandom(pool);
+    }
+    function generateWord() {
+      let word = "";
+      let diacriticUsed = false;
+      const syllables = Math.random() < 0.5 ? 1 : 2;
+
+      // 第一音節 CV
+      const onset1 = chooseOnset();
+      let vowel1 = chooseFirstVowel(diacriticUsed);
+      if (macronVowels.includes(vowel1)) diacriticUsed = true;
+      word += onset1 + vowel1;
+
+      if (syllables === 2) {
+        // 第二音節 CV
+        const onset2 = chooseOnset();
+        let vowel2 = chooseSecondVowel(diacriticUsed);
+        if (macronVowels.includes(vowel2) || acuteVowels.includes(vowel2)) diacriticUsed = true;
+        word += onset2 + vowel2;
+        if (Math.random() < 0.5) {
+          word += pickRandom(codas);
+        }
+      }
+      return word;
+    }
+
+    document.getElementById("generate").addEventListener("click", () => {
+      const n = parseInt(document.getElementById("count").value) || 1;
+      const list = [];
+      for (let i = 0; i < n; i++) {
+        list.push(generateWord());
+      }
+      document.getElementById("words").value = list.join("\n");
+    });
+  </script>
+</body>
+</html>
